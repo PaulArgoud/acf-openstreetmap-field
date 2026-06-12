@@ -16,6 +16,9 @@ $attr = [
 	'data-map-zoom'		=> $osm_map['zoom'],
 	'data-map-layers'	=> $osm_map['layers'],
 	'data-map-markers'	=> $osm_map['markers'],
+	'data-fit-bounds'	=> ! empty( $field['fit_bounds'] ) ? 1 : 0,
+	'data-gesture-handling'	=> ! empty( $field['gesture_handling'] ) ? 1 : 0,
+	'data-marker-icon'	=> $field['marker_icon_url'] ?? '',
 ];
 
 

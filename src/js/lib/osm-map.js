@@ -1,5 +1,6 @@
 import {L} from 'leaflet/no-conflict';
 import 'leaflet/tile-layer-provider';
+import 'leaflet-gesture-handling'; // registers the optional `gestureHandling` map handler (#70)
 
 (function( arg ){
 
@@ -49,8 +50,8 @@ import 'leaflet/tile-layer-provider';
 				scrollWheelZoom: false,
 				center: [ bulletproofParseFloat(data.mapLat), bulletproofParseFloat(data.mapLng) ],
 				zoom: data.mapZoom,
-				tap: false,
 				worldCopyJump: true,
+				gestureHandling: !! data.gestureHandling, // #70 (opt-in via field setting)
 			},
 			createEvt = new CustomEvent( 'acf-osm-map-create', {
 				bubbles: true,
@@ -92,6 +93,9 @@ import 'leaflet/tile-layer-provider';
 		createLayers.apply( el, [ data, map ] );
 
 		createMarkers.apply( el, [ data, map ] );
+
+		// #135: optionally zoom/center the map to fit all markers (opt-in).
+		maybeFitBounds( data, map );
 
 		// reload maps when they become visible
 		el.addEventListener( 'acf-osm-show', e => {
@@ -198,7 +202,11 @@ import 'leaflet/tile-layer-provider';
 		}
 
 		// markers ...
-		if ( arg.options.marker.html !== false ) {
+		if ( data.markerIcon ) {
+			// #135: per-field custom marker icon URL (no-code). For fine-grained
+			// control (size, anchor, retina, …) use the `acf_osm_marker_icon` filter.
+			default_marker_config.icon = L.icon({ iconUrl: data.markerIcon });
+		} else if ( arg.options.marker.html !== false ) {
 			default_marker_config.icon = L.divIcon({
 				html: arg.options.marker.html,
 				className: arg.options.marker.className
@@ -270,7 +278,7 @@ import 'leaflet/tile-layer-provider';
 		maxzoom = 100;
 
 
-		data.mapLayers
+		const layers = data.mapLayers
 			.filter( providerKey => 'string' === typeof providerKey ) // string keys only
 			.map( providerKey => { // be forgiving with deceased providers
 				try {
@@ -278,6 +286,17 @@ import 'leaflet/tile-layer-provider';
 				} catch( err ) {}
 			} )
 			.filter(e=>!!e) //
+
+		// No valid base layer left – e.g. the selected tile provider was
+		// discontinued (Stamen, …). Fall back to the default OpenStreetMap
+		// layer so the map shows tiles instead of staying blank. See #134.
+		if ( ! layers.some( layer => ! layer.overlay ) ) {
+			try {
+				layers.unshift( L.tileLayer.provider( 'OpenStreetMap.Mapnik' ) )
+			} catch( err ) {}
+		}
+
+		layers
 			.sort( (a,b) => a.overlay ) // overlays always on top
 			.forEach( layer => { // add
 
@@ -290,6 +309,29 @@ import 'leaflet/tile-layer-provider';
 			} )
 
 		map.setMaxZoom( maxzoom );
+	}
+
+	// #135: when enabled in the field settings, zoom/center the map so all
+	// markers fit into view. Opt-in, so the editor's saved center/zoom stays
+	// the default behaviour.
+	function maybeFitBounds( data, map ) {
+
+		if ( ! data.fitBounds || ! Array.isArray( data.mapMarkers ) || ! data.mapMarkers.length ) {
+			return;
+		}
+
+		const latLngs = data.mapMarkers
+			.map( marker => L.latLng( bulletproofParseFloat( marker.lat ), bulletproofParseFloat( marker.lng ) ) )
+			.filter( latLng => ! isNaN( latLng.lat ) && ! isNaN( latLng.lng ) );
+
+		if ( ! latLngs.length ) {
+			return;
+		}
+
+		map.fitBounds( L.latLngBounds( latLngs ), {
+			padding: [ 20, 20 ],
+			maxZoom: data.mapZoom, // don't zoom in further than the configured zoom
+		} );
 	}
 
 	window.addEventListener('DOMContentLoaded', e => {

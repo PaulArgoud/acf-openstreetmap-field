@@ -32,6 +32,24 @@ class MapProxy extends Singleton {
 	}
 
 	/**
+	 *	Absolute path to the proxy directory (wp-content/maps/).
+	 *
+	 *	@return string Trailing-slashed path.
+	 */
+	public function get_proxy_dir() {
+		return trailingslashit( trailingslashit( WP_CONTENT_DIR ) . $this->get_proxy_path() );
+	}
+
+	/**
+	 *	Whether the proxy directory has been installed.
+	 *
+	 *	@return boolean
+	 */
+	public function is_installed() {
+		return file_exists( $this->get_proxy_dir() . 'index.php' );
+	}
+
+	/**
 	 *	Apply proxy config to all providers
 	 *	@filter acf_osm_leaflet_providers
 	 */
@@ -84,7 +102,7 @@ class MapProxy extends Singleton {
 	private function proxify_tileset( $tileset, $provider_key, $variant_key = '' ) {
 
 		// resolution capability?
-		if ( strpos( $tileset['url'], '{r}') !== false ) {
+		if ( str_contains( $tileset['url'], '{r}' ) ) {
 			$url_params_part = '{z}/{x}/{y}{r}';
 		} else {
 			$url_params_part = '{z}/{x}/{y}';
@@ -92,7 +110,7 @@ class MapProxy extends Singleton {
 
 		// remove unneeded props from provider (and hide access tokens on the way)
 		foreach ( array_keys( $tileset['options'] ) as $option ) {
-			if ( strpos( $tileset['url'], "{{$option}}") !== false ) {
+			if ( str_contains( $tileset['url'], "{{$option}}" ) ) {
 				unset( $tileset['options'][$option] );
 			}
 		}

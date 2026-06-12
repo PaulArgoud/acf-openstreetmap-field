@@ -7,6 +7,9 @@ use ACFFieldOpenstreetmap\Helper;
 
 class OpenStreetMap extends \acf_field {
 
+	/** @var array Default field value (declared to avoid PHP 8.2 dynamic property deprecation) */
+	public $default_values = [];
+
 	/**
 	 *  __construct
 	 *
@@ -59,7 +62,11 @@ class OpenStreetMap extends \acf_field {
 			'height'			=> 400,
 			'return_format'		=> 'leaflet',
 			'allow_map_layers'	=> 1,
+			'fit_bounds'		=> 0,
+			'gesture_handling'	=> 0,
 			'max_markers'		=> '',
+			'markers_search_only'	=> 0,
+			'marker_icon_url'	=> '',
 			'layers'			=> $this->default_values['layers'],
 		];
 
@@ -136,6 +143,15 @@ class OpenStreetMap extends \acf_field {
 			'ui'			=> 1,
 			'min'			=> 0,
 			'step'			=> 1,
+		]);
+
+		// markers via search only (disable manual placement + dragging)
+		acf_render_field_setting( $field, [
+			'label'			=> __( 'Add markers via search only', 'acf-openstreetmap-field' ),
+			'instructions'	=> __( 'Editors can only place markers using the address search. Manual placement (double-click / tap-and-hold) and dragging are disabled.', 'acf-openstreetmap-field' ),
+			'name'			=> 'markers_search_only',
+			'type'			=> 'true_false',
+			'ui'			=> 1,
 		]);
 	}
 
@@ -226,6 +242,33 @@ class OpenStreetMap extends \acf_field {
 			'ui'			=> 1,
 		]);
 
+		// fit markers in view (frontend)
+		acf_render_field_setting( $field, [
+			'label'			=> __( 'Fit markers in view', 'acf-openstreetmap-field' ),
+			'instructions'	=> __( 'Automatically zoom and center the frontend map to fit all markers. Overrides the map position above when the map has markers.', 'acf-openstreetmap-field' ),
+			'name'			=> 'fit_bounds',
+			'type'			=> 'true_false',
+			'ui'			=> 1,
+		]);
+
+		// gesture handling (frontend, touch devices)
+		acf_render_field_setting( $field, [
+			'label'			=> __( 'Gesture handling', 'acf-openstreetmap-field' ),
+			'instructions'	=> __( 'Require ctrl/⌘ + scroll to zoom and two fingers to move the frontend map, so it does not trap page scrolling on touch devices.', 'acf-openstreetmap-field' ),
+			'name'			=> 'gesture_handling',
+			'type'			=> 'true_false',
+			'ui'			=> 1,
+		]);
+
+		// custom marker icon (frontend)
+		acf_render_field_setting( $field, [
+			'label'			=> __( 'Custom marker icon URL', 'acf-openstreetmap-field' ),
+			'instructions'	=> __( 'Optional image URL used for markers on the frontend. For full control (size, anchor, retina) use the acf_osm_marker_icon filter instead.', 'acf-openstreetmap-field' ),
+			'name'			=> 'marker_icon_url',
+			'type'			=> 'text',
+			'placeholder'	=> 'https://…',
+		]);
+
 		// Leaflet layers
 		acf_render_field_setting( $field, [
 			'label'			=> __( 'Leaflet Layers', 'acf-openstreetmap-field' ),
@@ -300,43 +343,15 @@ class OpenStreetMap extends \acf_field {
 						'allow_providers'		=> $field['allow_map_layers'],
 						'restrict_providers'	=> $restrict_providers,
 						'max_markers'			=> $max_markers,
+						'markers_search_only'	=> ! empty( $field['markers_search_only'] ),
+						'numeric_position'		=> true, // value editor only (#29)
 						'name_prefix'			=> $field['name'],
 					],
 				],
 			],
 			'map' => $field['value'],
 		];
-		if ( Core\Templates::is_supported() ) {
-			get_template_part( 'osm-maps/admin', null, $map_args );
-		} else {
-			// legacy
-			$attr = [
-				'data-editor-config'	=> json_encode([
-					'allow_providers'		=> $field['allow_map_layers'],
-					'restrict_providers'	=> array_values( $providers ),
-					'max_markers'			=> $max_markers,
-					'name_prefix'			=> $field['name'],
-				]),
-				'class'				=> 'leaflet-map',
-				'data-height'		=> $field['height'],
-				'data-map'			=> 'leaflet',
-				'data-map-lng'		=> $field['value']['lng'],
-				'data-map-lat'		=> $field['value']['lat'],
-				'data-map-zoom'		=> $field['value']['zoom'],
-				'data-map-layers'	=> $field['value']['layers'],
-				'data-map-markers'	=> $field['value']['markers'],
-			];
-
-			?>
-			<div <?php echo acf_esc_attr( $attr ) ?>></div>
-			<?php
-
-
-
-		}
-
-		// markers
-		$markers = []; // $field['value']['markers'];
+		get_template_part( 'osm-maps/admin', null, $map_args );
 
 
 		if ( $max_markers !== 0 ) {
@@ -349,9 +364,11 @@ class OpenStreetMap extends \acf_field {
 						<span class="add-marker-instructions marker-on-taphold can-add-marker">
 							<?php esc_html_e('Tap and hold to add Marker.', 'acf-openstreetmap-field' ); ?>
 						</span>
+						<?php if ( empty( $field['markers_search_only'] ) ) : ?>
 						<span class="has-markers">
 							<?php esc_html_e('Drag Marker to move.', 'acf-openstreetmap-field' ); ?>
 						</span>
+						<?php endif; ?>
 					</p>
 				</div>
 			<?php
@@ -668,7 +685,7 @@ class OpenStreetMap extends \acf_field {
 			$value['center_lat'] = $value['lat'];
 			$value['center_lng'] = $value['lng'];
 
-		} else if ( Core\Templates::is_supported() ) {
+		} else {
 
 			if ( 'osm' === $field['return_format'] && has_filter( 'osm_map_iframe_template' ) ) {
 				_deprecated_hook( 'osm_map_iframe_template', '1.3.0', 'theme overrides', 'The filter is no longer in effect.' );
@@ -682,78 +699,6 @@ class OpenStreetMap extends \acf_field {
 			] );
 
 			$value = ob_get_clean();
-
-		} else if ( $field['return_format'] === 'admin' ) { // wp < 5.5
-
-			$attr = $field['attr'] + [
-				'class'				=> 'leaflet-map',
-				'data-height'		=> $field['height'],
-				'data-map'			=> 'leaflet',
-				'data-map-lng'		=> $value['lng'],
-				'data-map-lat'		=> $value['lat'],
-				'data-map-zoom'		=> $value['zoom'],
-				'data-map-layers'	=> $value['layers'],
-				'data-map-markers'	=> $value['markers'],
-			];
-			$value = sprintf(
-				'<div %s></div>',
-				acf_esc_attr( $attr )
-			);
-
-		} else if ( $field['return_format'] === 'osm' ) { // wp < 5.5
-
-			// features: one marker max. four maps to choose from
-			$osm_providers = Core\OSMProviders::instance();
-
-			$iframe_atts = [
-				'height'		=> $field['height'],
-				'width'			=> '425',
-				'frameborder'	=> 0,
-				'scrolling'		=> 'no',
-				'marginheight'	=> 0,
-				'marginwidth'	=> 0,
-			];
-
-			$html = '<iframe src="%1$s" %2$s></iframe><br/><small><a target="_blank" href="%3$s">%4$s</a></small>';
-
-			/**
-			 *	Filter iframe HTML.
-			 *
-			 *	@param string $html Template String. Placeholders: %1$s: iFrame Source, %2$s: iframe attributes, %3$s: URL to bigger map, %4$s: Link-Text.
-			 */
-			$html = apply_filters( 'osm_map_iframe_template', $html );
-
-			$value = sprintf(
-				$html,
-				$osm_providers->get_iframe_url( $value ),
-				acf_esc_attr( $iframe_atts ),
-				esc_url( $osm_providers->get_link_url( $value ) ),
-				esc_html__( 'View Larger Map','acf-openstreetmap-field' )
-			);
-
-		} else if ( $field['return_format'] === 'leaflet' ) {
-
-			// features: multiple markers. lots of maps to choose from
-			$map_attr = [
-				'class'				=> 'leaflet-map',
-				'data-height'		=> $field['height'],
-				'data-map'			=> 'leaflet',
-				'data-map-lng'		=> $value['lng'],
-				'data-map-lat'		=> $value['lat'],
-				'data-map-zoom'		=> $value['zoom'],
-				'data-map-layers'	=> $value['layers'],
-				'data-map-markers'	=> $value['markers'],
-			];
-
-			if ( isset( $field['attr'] ) ) {
-				$map_attr = $field['attr'] + $map_attr;
-			}
-
-
-			$html = sprintf('<div %s></div>', acf_esc_attr( $map_attr ) );
-			$value = $html;
-
-			wp_enqueue_style( 'leaflet' );
 
 		}
 
@@ -871,6 +816,9 @@ class OpenStreetMap extends \acf_field {
 		$field['center_lng'] = floatval( $field['center_lng'] );
 		$field['zoom']       = min( 22, max( 1, intval( $field['zoom'] ) ) );
 
+		// custom marker icon url
+		$field['marker_icon_url'] = esc_url_raw( $field['marker_icon_url'] );
+
 		// layers
 		$field['layers']     = $this->sanitize_layers( $field['layers'] );
 
@@ -901,6 +849,10 @@ class OpenStreetMap extends \acf_field {
 			</div>
 			<div class="input">
 				<input type="text" data-name="label" />
+				<span class="coords">
+					<input type="number" step="any" data-name="lat" placeholder="<?php esc_attr_e('lat','acf-openstreetmap-field'); ?>" aria-label="<?php esc_attr_e('Latitude','acf-openstreetmap-field'); ?>" />
+					<input type="number" step="any" data-name="lng" placeholder="<?php esc_attr_e('lng','acf-openstreetmap-field'); ?>" aria-label="<?php esc_attr_e('Longitude','acf-openstreetmap-field'); ?>" />
+				</span>
 			</div>
 			<div class="tools">
 				<a class="acf-icon -minus small light acf-js-tooltip" href="#" data-name="remove-marker" title="<?php esc_attr_e('Remove Marker', 'acf-openstreetmap-field'); ?>"></a>

@@ -201,7 +201,7 @@ class SettingsOpenStreetMap extends Settings {
 	private function get_default_option_providers() {
 
 		$providers = Core\LeafletProviders::instance();
-		$is_https = strpos( get_option('home'), 'https:' ) === 0;
+		$is_https = str_starts_with( get_option('home'), 'https:' );
 		$provider_settings = $providers->get_providers(['credentials']);
 		$default_option = [];
 

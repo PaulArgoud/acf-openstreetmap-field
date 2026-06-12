@@ -10,6 +10,8 @@ class MarkerEntry extends wp.Backbone.View.extend({
 		'click [data-name="locate-marker"]' : 'locate_marker',
 		'click [data-name="remove-marker"]' : 'remove_marker',
 		'change [data-name="label"]'		: 'update_marker_label',
+		'change [data-name="lat"]'			: 'update_marker_latlng',
+		'change [data-name="lng"]'			: 'update_marker_latlng',
 	}
 }) {
 
@@ -49,6 +51,21 @@ class MarkerEntry extends wp.Backbone.View.extend({
 
 	changedlatLng() {
 		this.marker.setLatLng( { lat:this.model.get('lat'), lng:this.model.get('lng') } )
+		// keep the numeric inputs in sync (e.g. after dragging the marker) – #29
+		this.$('[data-name="lat"]').val( this.model.get('lat') )
+		this.$('[data-name="lng"]').val( this.model.get('lng') )
+	}
+
+	update_marker_latlng() {
+		const lat = parseFloat( this.$('[data-name="lat"]').val() )
+		const lng = parseFloat( this.$('[data-name="lng"]').val() )
+		if ( ! isNaN( lat ) ) {
+			this.model.set( 'lat', lat )
+		}
+		if ( ! isNaN( lng ) ) {
+			this.model.set( 'lng', lng )
+		}
+		return this
 	}
 
 	render() {
@@ -63,6 +80,9 @@ class MarkerEntry extends wp.Backbone.View.extend({
 				this.lolite_marker();
 			})
 			.val( this.model.get('label') ).trigger('change');
+		// populate the numeric coordinate inputs – #29
+		this.$('[data-name="lat"]').val( this.model.get('lat') );
+		this.$('[data-name="lng"]').val( this.model.get('lng') );
 		$(this.marker._icon)
 			.on('focus', e => {
 				this.hilite_marker();

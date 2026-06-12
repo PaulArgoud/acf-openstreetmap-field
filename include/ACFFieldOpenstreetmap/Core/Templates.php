@@ -9,19 +9,10 @@ class Templates extends Singleton {
 	private $template_dirname = 'osm-maps';
 
 	/**
-	 *	@return Boolean
-	 */
-	public static function is_supported() {
-		return version_compare( $GLOBALS['wp_version'], '5.5.0', '>=' );
-	}
-
-	/**
 	 *	@inheritdoc
 	 */
 	protected function __construct() {
-		if ( self::is_supported() ) {
-			add_action( 'get_template_part', [ $this, 'get_template_part' ], 10, 4 );
-		}
+		add_action( 'get_template_part', [ $this, 'get_template_part' ], 10, 4 );
 	}
 
 	/**
@@ -29,7 +20,7 @@ class Templates extends Singleton {
 	 */
 	public function get_template_part( $slug, $name = null, $templates = [], $args = [] ) {
 
-		if ( false === strpos( $slug, $this->template_dirname ) ) {
+		if ( ! str_contains( $slug, $this->template_dirname ) ) {
 			return;
 		}
 

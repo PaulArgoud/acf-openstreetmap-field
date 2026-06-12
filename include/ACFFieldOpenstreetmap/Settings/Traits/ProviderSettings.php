@@ -246,7 +246,7 @@ trait ProviderSettings {
 		$tag = '<span title="%s" class="%s">%s</span>';
 
 		if ( $this->is_insecure( $options ) ) {
-			$is_https = strpos( get_option('home'), 'https:' ) === 0;
+			$is_https = str_starts_with( get_option('home'), 'https:' );
 			printf(
 				$tag, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 				esc_html__( 'The map tiles are loaded through an insecure http connection.', 'acf-openstreetmap-field' ),
@@ -356,7 +356,7 @@ trait ProviderSettings {
 	 *	@return boolean
 	 */
 	private function is_insecure( $options ) {
-		return is_array($options) && isset( $options['url'] ) && strpos( $options['url'], 'http:' ) === 0;
+		return is_array($options) && isset( $options['url'] ) && str_starts_with( $options['url'], 'http:' );
 	}
 
 	/**

@@ -5,7 +5,7 @@
 	<description>A WordPress Ruleset to check application safety.</description>
 
 	<config name="installed_paths" value="vendor/wp-coding-standards/wpcs" />
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.0-"/>
 
 	<exclude-pattern>assets/*</exclude-pattern>
 	<exclude-pattern>node_modules/*</exclude-pattern>

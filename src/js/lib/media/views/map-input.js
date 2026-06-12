@@ -60,7 +60,6 @@ class MapInput extends Backbone.View {
 	}
 
 	get canAddMarker() {
-		console.log('cnAddMarker',this.countMarkers , this.maxMarkers)
 		return this.countMarkers < this.maxMarkers
 	}
 
@@ -141,12 +140,56 @@ class MapInput extends Backbone.View {
 
 		this.update_map();
 
+		this.init_numeric_position();
+
 		// kb navigation might interfere with other kb listeners
 		this.map.keyboard.disable();
 
 		this.el.dispatchEvent( new CustomEvent( 'osm-editor/initialized', { detail: {  view: this } } ), { bubbles: true } )
 
 		return this;
+	}
+
+	init_numeric_position() {
+		// #29: numeric lat/lng/zoom inputs for the map, two-way bound to the model.
+		// Only in the value editor (the field-group settings preview omits the flag).
+		if ( ! this.config.numeric_position ) {
+			return;
+		}
+
+		const $form = $(
+			'<div class="acf-osm-position">'
+			+ `<label><span>${i18n.lat}</span><input type="number" step="any" data-name="map-lat" /></label>`
+			+ `<label><span>${i18n.lng}</span><input type="number" step="any" data-name="map-lng" /></label>`
+			+ `<label><span>${i18n.zoom}</span><input type="number" min="0" max="22" step="1" data-name="map-zoom" /></label>`
+			+ '</div>'
+		).insertAfter( this.$el )
+
+		const $lat  = $form.find('[data-name="map-lat"]')
+		const $lng  = $form.find('[data-name="map-lng"]')
+		const $zoom = $form.find('[data-name="map-zoom"]')
+
+		const sync = () => {
+			$lat.val( this.model.get('lat') )
+			$lng.val( this.model.get('lng') )
+			$zoom.val( this.model.get('zoom') )
+		}
+		sync()
+
+		this.listenTo( this.model, 'change:lat change:lng change:zoom', sync )
+
+		$lat.add( $lng ).on( 'change', () => {
+			const lat = parseFloat( $lat.val() ), lng = parseFloat( $lng.val() )
+			if ( ! isNaN( lat ) && ! isNaN( lng ) ) {
+				this.map.panTo( [ lat, lng ] )
+			}
+		} )
+		$zoom.on( 'change', () => {
+			const z = parseInt( $zoom.val(), 10 )
+			if ( ! isNaN( z ) ) {
+				this.map.setZoom( z )
+			}
+		} )
 	}
 
 	init_fit_bounds() {
@@ -245,7 +288,7 @@ class MapInput extends Backbone.View {
 		const marker = L.marker( { lat: model.get('lat'), lng: model.get('lng') }, {
 				title: model.get('label'),
 				icon: this.icon,
-				draggable: true
+				draggable: ! this.config.markers_search_only
 			})
 			.bindTooltip( model.get('label') );
 
@@ -314,11 +357,13 @@ class MapInput extends Backbone.View {
 			this.initMarker( model );
 		} );
 
-		// adding marker pointer action
-		if ( L.Browser.touch && L.Browser.mobile ) {
-			this._add_marker_on_hold();
-		} else {
-			this._add_marker_on_dblclick();
+		// adding marker pointer action – disabled when markers are search-only (#91)
+		if ( ! this.config.markers_search_only ) {
+			if ( L.Browser.touch && L.Browser.mobile ) {
+				this._add_marker_on_hold();
+			} else {
+				this._add_marker_on_dblclick();
+			}
 		}
 
 		this.updateMarkerState();
@@ -551,24 +596,43 @@ console.debug('parseGeocodeResult', results);
 		return label;
 	}
 
-	getDefaultProviders() {
-
-	}
-
 	/**
 	 *	Layers
 	 */
 	initLayers() {
 
-		const selectedLayers = this.model.get('layers')
-		const allLayers      = (this.config.restrict_providers || Object.values(acf_osm_admin.options.leaflet_layers))
-			.map( providerKey => L.tileLayer.provider( providerKey ) )
+		const selectedLayers = this.model.get('layers') || []
+
+		// Layers offered in the picker respect the global enable/disable settings,
+		// but keep any layer the field already uses – even if its provider was
+		// disabled globally afterwards – so existing selections still render and
+		// aren't silently dropped on save. See #109.
+		const offeredLayers  = this.config.restrict_providers || Object.values(acf_osm_admin.options.leaflet_layers)
+		const allLayers      = [ ...new Set( [ ...offeredLayers, ...selectedLayers ] ) ]
+			.map( providerKey => { // be forgiving with deceased providers
+				try {
+					return L.tileLayer.provider( providerKey )
+				} catch ( err ) {}
+			} )
+			.filter( e => !! e )
 
 		const baseLayers     = Object.fromEntries( allLayers.filter( l => ! l.overlay ).map( l => [ l.providerKey, l ] ) )
 		const overlays       = Object.fromEntries( allLayers.filter( l => l.overlay ).map( l => [ l.providerKey, l ] ) )
 
-		allLayers
+		const activeLayers   = allLayers
 			.filter( layer => selectedLayers.includes( layer.providerKey ) )
+
+		// No valid base layer selected – e.g. the configured tile provider was
+		// discontinued (Stamen, …) and no longer exists. Fall back to the
+		// default OpenStreetMap layer so the editor map is not blank. See #134.
+		if ( ! activeLayers.some( layer => ! layer.overlay ) ) {
+			const fallback = baseLayers['OpenStreetMap.Mapnik'] || Object.values( baseLayers )[0]
+			if ( fallback ) {
+				activeLayers.unshift( fallback )
+			}
+		}
+
+		activeLayers
 			.sort( (a,b) => a.overlay )
 			.forEach( layer => layer.addTo( this.map ) )
 
@@ -598,32 +662,6 @@ console.debug('parseGeocodeResult', results);
 			collapsed: true,
 			hideSingleBase: true,
 		}).addTo(this.map);
-	}
-
-	layer_is_overlay( key, layer ) {
-
-		if ( layer.options.opacity && layer.options.opacity < 1 ) {
-			return true;
-		}
-
-		var patterns = [
-			'^(OpenWeatherMap|OpenSeaMap)',
-			'OpenMapSurfer.(Hybrid|AdminBounds|ContourLines|Hillshade|ElementsAtRisk)',
-			'HikeBike.HillShading',
-			'^WaymarkedTrails',
-			'Stamen.(Toner|Terrain)(Hybrid|Lines|Labels)',
-			'TomTom.(Hybrid|Labels)',
-			'Hydda.RoadsAndLabels',
-			'^JusticeMap',
-			'OpenPtMap',
-			'OpenRailwayMap',
-			'OpenFireMap',
-			'SafeCast',
-			'OnlyLabels',
-			'HERE(v3?).trafficFlow',
-			'HERE(v3?).mapLabels'
-		].join('|');
-		return key.match('(' + patterns + ')') !== null;
 	}
 
 	resetLayers() {

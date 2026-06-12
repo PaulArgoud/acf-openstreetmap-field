@@ -38,6 +38,12 @@ class LeafletProviders extends Singleton {
 				// get configured token
 				$tokens = get_option( 'acf_osm_provider_tokens', [] );
 
+				// Only merge tokens for providers that still exist in the catalog.
+				// Legacy configs may hold entries for removed providers (e.g. a bare
+				// `HERE` app_id/app_key) which would otherwise be injected as malformed
+				// providers (missing `options`/`url`) and break map rendering. See #133.
+				$tokens = array_intersect_key( $tokens, $providers );
+
 				// merge tokens
 				$providers = array_replace_recursive( $providers, $tokens );
 
@@ -95,7 +101,7 @@ class LeafletProviders extends Singleton {
 		$token_options = [];
 
 		foreach ( $this->get_providers() as $provider => $data ) {
-			foreach( $data['options'] as $option => $value ) {
+			foreach( $data['options'] ?? [] as $option => $value ) {
 				if ( is_string($value) && ( 1 === preg_match( '/^<([^>]*)>$/imsU', $value, $matches ) ) ) { // '<insert your [some token] here>'
 
 					if ( ! isset($token_options[ $provider ]['options'] ) ) {
@@ -152,7 +158,7 @@ class LeafletProviders extends Singleton {
 	}
 
 	public function get_layer_config() {
-		return $this->filter_recursive( get_option( 'acf_osm_provider_tokens', [] ) );
+		return Helper\ArrayHelper::filter_recursive( get_option( 'acf_osm_provider_tokens', [] ) );
 	}
 
 	/**
@@ -179,21 +185,6 @@ class LeafletProviders extends Singleton {
 
 
 	/**
-	 *	@param array $arr
-	 *	@return array
-	 */
-	private function filter_recursive( $arr ) {
-		foreach ( $arr as &$value ) {
-			if ( is_array( $value ) ) {
-				$value = $this->filter_recursive( $value );
-			}
-		}
-		$arr = array_filter( $arr );
-		return $arr;
-	}
-
-
-	/**
 	 *	Whether an access key needs to be entered to make this provider work.
 	 *
 	 *	@param string $provider_key
@@ -201,7 +192,7 @@ class LeafletProviders extends Singleton {
 	 *	@return boolean Whether this map provider requires an access key and the access key is not configured yet
 	 */
 	public function needs_access_token( $provider_key, $provider_data ) {
-		foreach ( $provider_data['options'] as $option => $value ) {
+		foreach ( $provider_data['options'] ?? [] as $option => $value ) {
 			if ( is_string($value) && ( 1 === preg_match( '/^<([^>]*)>$/imsU', $value ) ) ) {
 				return true;
 			}
@@ -218,7 +209,7 @@ class LeafletProviders extends Singleton {
 	 */
 	public function has_access_token( $provider_key, $provider_data ) {
 		$token_option = get_option( 'acf_osm_provider_tokens' );
-		foreach ( $provider_data['options'] as $option => $value ) {
+		foreach ( $provider_data['options'] ?? [] as $option => $value ) {
 			if ( is_string($value) && ( 1 === preg_match( '/^<([^>]*)>$/imsU', $value ) ) ) {
 				return isset( $token_option[ $provider_key ][ 'options' ][ $option ] )
 					&& ! empty( $token_option[ $provider_key ][ 'options' ][ $option ] );

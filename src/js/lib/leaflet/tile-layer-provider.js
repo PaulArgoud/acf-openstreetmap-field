@@ -64,7 +64,7 @@ const Provider = L.TileLayer.extend({
 	}
 });
 
-Provider.providers = acf_osm.providers; //console.log()
+Provider.providers = acf_osm.providers;
 
 L.TileLayer.Provider = Provider;
 

@@ -397,3 +397,35 @@ $leaflet-panes: (
 		}
 	}
 }
+
+// #29 – numeric coordinate inputs (map position + per-marker)
+.acf-osm-position {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 6px;
+
+	label {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+
+		span {
+			font-size: 11px;
+			opacity: 0.7;
+		}
+	}
+
+	input[type="number"] {
+		width: 8em;
+	}
+}
+
+.osm-marker .coords {
+	display: inline-flex;
+	gap: 4px;
+
+	input[type="number"] {
+		width: 7em;
+	}
+}
