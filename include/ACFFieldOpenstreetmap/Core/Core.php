@@ -19,6 +19,8 @@ class Core extends Plugin {
 
 		add_action( 'acf/include_field_types', [ '\ACFFieldOpenstreetmap\Compat\ACF', 'instance'], 0 );
 
+		add_action( 'init', [ '\ACFFieldOpenstreetmap\Compat\WPGraphQL', 'instance'] );
+
 		add_action( 'init', [ '\ACFFieldOpenstreetmap\Core\Templates', 'instance'] );
 		add_action( 'init', [ '\ACFFieldOpenstreetmap\Core\MapProxy', 'instance'] );
 
@@ -43,12 +45,6 @@ class Core extends Plugin {
 		$osm_providers = OSMProviders::instance();
 		/** @var LeafletGeocoders $leaflet_geocoders */
 		$leaflet_geocoders = LeafletGeocoders::instance();
-
-		$provider_filters = ['credentials'];
-
-		if ( ! is_admin() || get_current_screen()->base !== 'settings_page_acf_osm' ) {
-			$provider_filters[] = 'enabled';
-		}
 
 		$language = substr( get_locale(), 0, 2 );
 
@@ -100,7 +96,11 @@ class Core extends Plugin {
 				],
 
 			],
-			'providers' => $leaflet_providers->get_providers( $provider_filters ),
+			// Full credentialed catalogue – NOT filtered by the global enable/disable
+			// settings – so a layer a field already uses keeps rendering even after its
+			// provider was disabled globally. The enable/disable settings only govern
+			// the layer picker (see LeafletProviders::get_layers()). See #109.
+			'providers' => $leaflet_providers->get_providers( [ 'credentials' ] ),
 		];
 		$geocoders = $leaflet_geocoders->get_geocoders();
 		$osm_settings = [
@@ -160,14 +160,33 @@ class Core extends Plugin {
 					=> __( 'Add Marker at location', 'acf-openstreetmap-field' ),
 				'fit_markers_in_view'
 				 				=> __( 'Fit markers into view', 'acf-openstreetmap-field' ),
-				'address_format'	=> [
+				/* translators: short label for the latitude coordinate input */
+				'lat'			=> __( 'lat', 'acf-openstreetmap-field' ),
+				/* translators: short label for the longitude coordinate input */
+				'lng'			=> __( 'lng', 'acf-openstreetmap-field' ),
+				/* translators: short label for the zoom level input */
+				'zoom'			=> __( 'zoom', 'acf-openstreetmap-field' ),
+				/**
+				 *	Filter the address formats used to build marker labels from
+				 *	geocoding results. Useful to reorder or localise the parts.
+				 *
+				 *	Available placeholders: {building} {road} {house_number}
+				 *	{postcode} {city} {town} {village} {hamlet} {state} {country}
+				 *
+				 *	@param array $address_format [
+				 *		'street'  => (string) street level format,
+				 *		'city'    => (string) city level format,
+				 *		'country' => (string) country level format,
+				 *	]
+				 */
+				'address_format'	=> apply_filters( 'acf_osm_address_format', [
 					/* translators: address format for marker labels (street level). Available placeholders {building} {road} {house_number} {postcode} {city} {town} {village} {hamlet} {state} {country} */
 					'street'	=> __( '{building} {road} {house_number}', 'acf-openstreetmap-field' ),
 					/* translators: address format for marker labels (city level). Available placeholders {building} {road} {house_number} {postcode} {city} {town} {village} {hamlet} {state} {country} */
 					'city'		=> __( '{postcode} {city} {town} {village} {hamlet}', 'acf-openstreetmap-field' ),
 					/* translators: address format for marker labels (country level). Available placeholders {building} {road} {house_number} {postcode} {city} {town} {village} {hamlet} {state} {country} */
 					'country'	=> __( '{state} {country}', 'acf-openstreetmap-field' ),
-				]
+				] )
 			],
 		];
 

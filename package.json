@@ -1,6 +1,6 @@
 {
   "name": "acf-openstreetmap-field",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "A configurable OpenStreetMap Field to ACF.",
   "private": true,
   "scripts": {
@@ -17,8 +17,8 @@
     "build:i18n:json": "node ./src/run/i18n-json-strings.js",
     "uitest": "echo \"Running UI Tests. Press ^C to stop\" && node --watch ./src/run/test.js start && node ./src/run/test.js stop",
     "test": "npm-run-all --serial test:legacy test:edge",
-    "test:edge": "WP_ENV_PHP_VERSION=8.3 wp-env start && wp-env run cli php -v && npm run test:phpunit",
-    "test:legacy": "WP_ENV_PHP_VERSION=7.4 wp-env start && wp-env run cli php -v && npm run test:phpunit",
+    "test:edge": "WP_ENV_PHP_VERSION=8.5 wp-env start && wp-env run cli php -v && npm run test:phpunit",
+    "test:legacy": "WP_ENV_PHP_VERSION=8.0 wp-env start && wp-env run cli php -v && npm run test:phpunit",
     "test:phpunit": "wp-env run tests-cli --env-cwd=wp-content/plugins/acf-openstreetmap-field vendor/bin/phpunit --",
     "dev-test": "./src/run/dev-test.sh",
     "dashicons": "node ./src/run/dashicons.js",
@@ -43,7 +43,6 @@
   ],
   "homepage": "https://github.com/mcguffin/acf-openstreetmap-field#readme",
   "devDependencies": {
-    "@babel/preset-env": "*",
     "@wordpress/env": "^10.14.0",
     "colors": "^1.4.0",
     "jsonlint": "^1.6.3",
@@ -72,8 +71,7 @@
     "type": "plugin",
     "build": {
       "versionedFiles": null,
-      "prebuild": [
-      ],
+      "prebuild": [],
       "build": [
         "npm run build",
         "npm run ver"
@@ -91,5 +89,8 @@
     "test": [
       "npm run test"
     ]
+  },
+  "dependencies": {
+    "leaflet-gesture-handling": "^1.2.2"
   }
 }

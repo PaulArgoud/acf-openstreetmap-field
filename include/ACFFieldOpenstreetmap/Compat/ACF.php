@@ -16,7 +16,35 @@ class ACF extends Core\Singleton {
 		// Compat with https://github.com/mcguffin/polylang-sync
 		add_filter( 'polylang_acf_sync_supported_fields', [ $this, 'add_pll_sync_field_type'] );
 
+		// Compat with WPML / ACF Multilingual: don't translate the map field.
+		add_filter( 'acfml_should_translate_acf_entity', [ $this, 'wpml_should_translate_entity' ], 10, 3 );
+
 		add_action( 'acf/input/admin_enqueue_scripts', [ $this, 'acf_admin_enqueue_scripts' ] );
+	}
+
+	/**
+	 *	Tell WPML / ACF Multilingual not to translate the OpenStreetMap field.
+	 *
+	 *	The field value is a structured array (coordinates, zoom, layers,
+	 *	markers) – not a string. When WPML registers it for string translation
+	 *	(e.g. while translating an ACF block) it eventually calls strlen() on
+	 *	the value, which fatals with "Argument #1 ($string) must be of type
+	 *	string, array given".
+	 *
+	 *	@see https://github.com/mcguffin/acf-openstreetmap-field/issues/136
+	 *
+	 *	@filter acfml_should_translate_acf_entity
+	 *
+	 *	@param boolean $should_translate Whether the entity should be translated.
+	 *	@param array   $entity           ACF field or field group definition.
+	 *	@param string  $entity_type      Either 'field' or 'group'.
+	 *	@return boolean
+	 */
+	public function wpml_should_translate_entity( $should_translate, $entity, $entity_type ) {
+		if ( 'field' === $entity_type && isset( $entity['type'] ) && 'open_street_map' === $entity['type'] ) {
+			return false;
+		}
+		return $should_translate;
 	}
 
 	/**

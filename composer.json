@@ -7,16 +7,21 @@
     "ACF Field",
     "Map",
     "OpenStreetMap",
-    "Lealet"
+    "Leaflet"
   ],
   "homepage": "https://github.com/mcguffin/acf-openstreetmap-field",
   "type": "wordpress-plugin",
+  "autoload": {
+    "psr-4": {
+      "ACFFieldOpenstreetmap\\": "include/ACFFieldOpenstreetmap/"
+    }
+  },
   "require": {
     "composer/installers": "~1.2|^2",
-    "php": ">=7.4.33|^8"
+    "php": ">=8.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^8.5|^9.6",
+    "phpunit/phpunit": "^9.6",
     "squizlabs/php_codesniffer": "*",
     "wp-coding-standards/wpcs": "*",
     "yoast/phpunit-polyfills": "^3.0"

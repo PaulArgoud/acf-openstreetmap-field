@@ -5,7 +5,9 @@ Plugin Name: ACF OpenStreetMap Field
 Plugin URI: https://wordpress.org/plugins/acf-openstreetmap-field
 Description: A configurable OpenStreetMap Field for ACF.
 Author: Jörn Lund
-Version: 1.6.1
+Version: 1.7.0
+Requires at least: 5.5
+Requires PHP: 8.0
 Author URI: https://github.com/mcguffin
 License: GPL3
 Text Domain: acf-openstreetmap-field
