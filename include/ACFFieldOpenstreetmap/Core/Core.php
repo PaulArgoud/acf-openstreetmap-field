@@ -121,9 +121,9 @@ class Core extends Plugin {
 		/**
 		 * Get Geocoder options from the Admin UI.
 		 */
-		$geocoder_settings = get_option('acf_osm_geocoder');
+		$geocoder_settings = (array) get_option('acf_osm_geocoder');
 
-		$geocoder_name = $geocoder_settings['engine'];
+		$geocoder_name = $geocoder_settings['engine'] ?? LeafletGeocoders::GEOCODER_DEFAULT;
 
 		$osm_admin = [
 			'options'	=> [

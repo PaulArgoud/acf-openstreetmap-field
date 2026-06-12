@@ -54,7 +54,7 @@ class LeafletGeocoders extends Singleton {
 
 		$geocoders = $this->get_geocoders();
 
-		if ( ! isset( $geocoders[$geocoder_name] ) ) {
+		if ( ! $geocoder_name || ! isset( $geocoders[$geocoder_name] ) ) {
 			$geocoder_name = self::GEOCODER_DEFAULT;
 		}
 
@@ -111,7 +111,7 @@ class LeafletGeocoders extends Singleton {
 
 		// merge with settings
 		$geocoder_settings = (array) get_option('acf_osm_geocoder');
-		$options['scale']  = $geocoder_settings['scale'];
+		$options['scale']  = $geocoder_settings['scale'] ?? '18'; // default detail scale
 		if ( isset( $geocoder_settings[$geocoder_name] ) && is_array( $geocoder_settings[$geocoder_name] ) ) {
 			$options = wp_parse_args( $geocoder_settings[$geocoder_name], $options );
 		}

@@ -85,7 +85,7 @@ trait GeocoderSettings {
 	 */
 	private function register_settings_geocoder() {
 		$settings_section = 'acf_osm_geocoder';
-		$geocoder_option  = get_option( 'acf_osm_geocoder' );
+		$geocoder_option  = wp_parse_args( (array) get_option( 'acf_osm_geocoder' ), $this->geocoder_defaults );
 		$geocoders        = Core\LeafletGeocoders::instance();
 
 		register_setting( $this->optionset, 'acf_osm_geocoder', [ $this , 'sanitize_geocoder' ] );
