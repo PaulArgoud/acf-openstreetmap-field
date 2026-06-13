@@ -66,31 +66,42 @@ jobs:
       fail-fast: false
       matrix:
         php: [ '8.0', '8.5' ]
+    services:
+      mysql:
+        image: mariadb:lts
+        env:
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-          cache: npm
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
+          extensions: mysqli, zip
           tools: composer
           coverage: none
 
-      - run: npm ci --ignore-scripts
+      - name: Install subversion (for the WP test library)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends subversion
+
       - run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Start wp-env & run PHPUnit (PHP ${{ matrix.php }})
-        run: |
-          WP_ENV_PHP_VERSION=${{ matrix.php }} npx wp-env start --debug
-          npm run test:phpunit
+      - name: Install the WordPress test suite (WP 7.0)
+        run: bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1 7.0 true
 
-      - name: Diagnostics (on failure)
-        if: failure()
+      - name: Install Secure Custom Fields into the test site
         run: |
-          docker ps -a || true
-          npx wp-env run tests-cli wp core version || true
+          curl -sL https://downloads.wordpress.org/plugin/secure-custom-fields.zip -o /tmp/scf.zip
+          unzip -q /tmp/scf.zip -d /tmp/wordpress/wp-content/plugins/
+
+      - name: PHPUnit
+        run: vendor/bin/phpunit
+        env:
+          WP_TESTS_DIR: /tmp/wordpress-tests-lib
