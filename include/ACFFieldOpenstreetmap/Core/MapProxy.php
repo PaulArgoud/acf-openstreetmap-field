@@ -159,38 +159,23 @@ class MapProxy extends Singleton {
 
 			$provider = LeafletProviders::instance()->unify_provider_variants( $provider );
 
-			if ( isset( $provider['options']['subdomains'] ) ) {
-				$subdomains = $provider['options']['subdomains'];
-			} else {
-				$subdomains = 'abc';
-			}
+			$subdomains = $provider['options']['subdomains'] ?? 'abc';
 
-			$proxy_config[$provider_key] = [
-				'base_url'   => $this->generate_url( $provider['url'], $provider['options'] ),
-				'subdomains' => $subdomains,
-			];
+			$proxy_config[ $provider_key ] = $this->build_tileset_config(
+				$provider['url'],
+				[ $provider['options'] ],
+				$subdomains
+			);
 
 			if ( isset( $provider['variants'] ) ) {
 				foreach ( $provider['variants'] as $variant_key => $variant ) {
-					if ( isset( $variant['url'] ) ) {
-						$variant_url = $variant['url'];
-					} else {
-						$variant_url = $provider['url'];
-					}
 
-					$variant_url = $this->generate_url( $variant_url, $variant['options'] );
-					$variant_url = $this->generate_url( $variant_url, $provider['options'] );
-
-					if ( isset( $variant['options']['subdomains'] ) ) {
-						$variant_subdomains = $variant['options']['subdomains'];
-					} else {
-						$variant_subdomains = $subdomains;
-					}
-
-					$proxy_config["{$provider_key}.{$variant_key}"] = [
-						'base_url'   => $variant_url,
-						'subdomains' => $variant_subdomains,
-					];
+					$proxy_config["{$provider_key}.{$variant_key}"] = $this->build_tileset_config(
+						$variant['url'] ?? $provider['url'],
+						// variant placeholders first, then provider-level ones
+						[ $variant['options'], $provider['options'] ],
+						$variant['options']['subdomains'] ?? $subdomains
+					);
 				}
 			}
 		}
@@ -205,6 +190,25 @@ class MapProxy extends Singleton {
 		if ( $wp_filesystem->exists( $legacy ) ) {
 			$wp_filesystem->delete( $legacy );
 		}
+	}
+
+	/**
+	 *	Build a single proxy tileset config entry.
+	 *
+	 *	@param string $base_url     base tile URL
+	 *	@param array  $option_sets  one or more option arrays whose placeholders are
+	 *	                            substituted into the URL, applied in order
+	 *	@param string $subdomains   resolved subdomains for {s} substitution at request time
+	 *	@return array
+	 */
+	private function build_tileset_config( $base_url, array $option_sets, $subdomains ) {
+		foreach ( $option_sets as $options ) {
+			$base_url = $this->generate_url( $base_url, $options );
+		}
+		return [
+			'base_url'   => $base_url,
+			'subdomains' => $subdomains,
+		];
 	}
 
 	/**
