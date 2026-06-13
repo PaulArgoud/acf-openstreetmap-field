@@ -47,4 +47,17 @@ class LeafletProvidersTest extends WP_UnitTestCase {
 
 		delete_option( 'acf_osm_provider_tokens' );
 	}
+
+	/**
+	 * @covers ACFFieldOpenstreetmap\Core\LeafletProviders::is_token_placeholder
+	 */
+	public function test_is_token_placeholder() {
+		$this->assertTrue( Core\LeafletProviders::is_token_placeholder( '<your api key>' ) );
+		$this->assertTrue( Core\LeafletProviders::is_token_placeholder( '<>' ) );
+
+		$this->assertFalse( Core\LeafletProviders::is_token_placeholder( 'abc123' ) );
+		$this->assertFalse( Core\LeafletProviders::is_token_placeholder( 'a<b>c' ) );
+		$this->assertFalse( Core\LeafletProviders::is_token_placeholder( 42 ) );
+		$this->assertFalse( Core\LeafletProviders::is_token_placeholder( null ) );
+	}
 }

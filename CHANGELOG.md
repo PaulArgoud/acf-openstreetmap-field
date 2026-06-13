@@ -7,6 +7,9 @@ All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugi
  - Dev: De-duplicated the map-proxy tileset config builder (`MapProxy::build_tileset_config`).
  - Dev: Refactored the OpenStreetMap field class — the value sanitization moved to a decoupled, unit-tested `Field\MapValue` class and the field-editor settings UI to a `Field\Traits\FieldSettings` trait (the field class went from ~860 to ~510 lines).
  - Dev: CI maintenance — `composer install` now retries to ride out transient Packagist outages, and the `actions/checkout` / `actions/setup-node` steps were bumped to v5 (Node 24 runtime).
+ - Fix: The settings page no longer registers an invalid section callback (a leftover reference to a removed method), and two settings strings (“Disable …” / “Enable Proxy for …”) used a misspelled text domain so they were never translatable — both corrected.
+ - Performance: The tile-provider catalogue is now memoized per request (and invalidated when the relevant settings change), so the repeated provider/layer lookups during asset registration no longer re-filter the full list each time; `has_access_token()` no longer re-reads the tokens option once per provider.
+ - Dev: De-duplicated the access-token placeholder detection into `LeafletProviders::is_token_placeholder()` and removed dead code in `get_layers()`.
 
 ## 1.7.1
  - Feature: Nginx support hint — when the map proxy is enabled on a server that doesn't use `.htaccess` (Nginx, …), the settings page shows the `location` block to add so proxied tiles are served.
