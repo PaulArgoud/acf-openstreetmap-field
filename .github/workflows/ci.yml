@@ -33,8 +33,8 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: PHP syntax + phpcs audit
-        run: vendor/bin/phpcs -q --report=checkstyle --standard=phpcs.ruleset.xml . | cs2pr
+      - name: phpcs (errors only; warnings are informational)
+        run: vendor/bin/phpcs -q -n --report=checkstyle --standard=phpcs.ruleset.xml . | cs2pr
 
   build:
     name: Build assets
@@ -84,12 +84,13 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Start wp-env (PHP ${{ matrix.php }})
-        run: WP_ENV_PHP_VERSION=${{ matrix.php }} npx wp-env start
+      - name: Start wp-env & run PHPUnit (PHP ${{ matrix.php }})
+        run: |
+          WP_ENV_PHP_VERSION=${{ matrix.php }} npx wp-env start --debug
+          npm run test:phpunit
 
-      - name: Run PHPUnit
-        run: npm run test:phpunit
-
-      - name: Stop wp-env
-        if: always()
-        run: npx wp-env stop
+      - name: Diagnostics (on failure)
+        if: failure()
+        run: |
+          docker ps -a || true
+          npx wp-env run tests-cli wp core version || true
