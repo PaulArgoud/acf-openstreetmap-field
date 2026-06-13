@@ -2,6 +2,9 @@
 
 All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugins/acf-openstreetmap-field/) plugin are documented in this file.
 
+## Unreleased
+ - Dev: Refactored the OpenStreetMap field class — the value sanitization moved to a decoupled, unit-tested `Field\MapValue` class and the field-editor settings UI to a `Field\Traits\FieldSettings` trait (the field class went from ~860 to ~510 lines).
+
 ## 1.7.1
  - Feature: Nginx support hint — when the map proxy is enabled on a server that doesn't use `.htaccess` (Nginx, …), the settings page shows the `location` block to add so proxied tiles are served.
  - Changed: The map proxy configuration is now stored as JSON (`acf-osm-proxy-config.json`) instead of a generated PHP file. Existing installs are migrated automatically on upgrade (the proxy `index.php` reads either format).
