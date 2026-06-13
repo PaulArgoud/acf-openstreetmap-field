@@ -3,6 +3,9 @@
 All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugins/acf-openstreetmap-field/) plugin are documented in this file.
 
 ## Unreleased
+ - Feature: Nginx support hint — when the map proxy is enabled on a server that doesn't use `.htaccess` (Nginx, …), the settings page shows the `location` block to add so proxied tiles are served.
+ - Changed: The map proxy configuration is now stored as JSON (`acf-osm-proxy-config.json`) instead of a generated PHP file. Existing installs are migrated automatically on upgrade (the proxy `index.php` reads either format).
+ - Changed: Added `uninstall.php` — deleting the plugin now removes its options and the generated `wp-content/maps/` proxy directory (multisite-aware).
  - Fix: The map proxy now uses a request timeout (no more hanging on a slow tile server) and no longer forwards the visitor's `Referer` header to the upstream tile server (privacy).
  - Dev: Added GitHub Actions CI (phpcs + PHPUnit on PHP 8.0 & 8.5 + an asset-build check), expanded the PHPUnit suite (field value layer + OpenStreetMap iframe/link URLs), and pinned Composer's `platform.php` to 8.0 so dev dependencies resolve for the minimum supported PHP version.
  - Dev: New `npm run providers` drift report comparing `etc/leaflet-providers.json` against the upstream `leaflet-providers` package (catches discontinued providers and moved tile URLs early).

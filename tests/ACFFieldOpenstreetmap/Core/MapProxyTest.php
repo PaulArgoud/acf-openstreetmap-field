@@ -54,6 +54,11 @@ class MapProxyTest extends SingletonTestCase {
 		$proxy = Core\MapProxy::instance();
 		$proxy->save_proxy_config( $upload_dir['basedir'] );
 
-		$this->assertFileExists( $upload_dir['basedir'] . '/acf-osm-proxy-config.php' );
+		// config is written as inert JSON, not executable PHP
+		$this->assertFileExists( $upload_dir['basedir'] . '/acf-osm-proxy-config.json' );
+		$this->assertFileDoesNotExist( $upload_dir['basedir'] . '/acf-osm-proxy-config.php' );
+
+		$config = json_decode( file_get_contents( $upload_dir['basedir'] . '/acf-osm-proxy-config.json' ), true );
+		$this->assertIsArray( $config );
 	}
 }

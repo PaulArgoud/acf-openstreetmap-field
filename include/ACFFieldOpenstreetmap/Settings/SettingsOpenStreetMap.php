@@ -38,11 +38,50 @@ class SettingsOpenStreetMap extends Settings {
 
 		add_action( 'admin_menu', [ $this, 'admin_menu' ] );
 		add_action( "load-settings_page_acf_osm", [ $this, 'enqueue_assets' ] );
+		add_action( 'admin_notices', [ $this, 'maybe_nginx_proxy_notice' ] );
 
 		add_filter( 'plugin_action_links_'.$core->get_wp_plugin(), [ $this, 'plugin_actions_links' ], 20, 4 );
 
 		parent::__construct();
 
+	}
+
+	/**
+	 *	Warn on the settings page when the map proxy is enabled but the server
+	 *	does not use .htaccess (e.g. Nginx), where the proxy rewrite won't apply.
+	 *
+	 *	@action admin_notices
+	 */
+	public function maybe_nginx_proxy_notice() {
+
+		$screen = get_current_screen();
+		if ( ! $screen || 'settings_page_acf_osm' !== $screen->id ) {
+			return;
+		}
+
+		$proxy_enabled = apply_filters( 'acf_osm_force_proxy', false )
+			|| (bool) array_filter( (array) get_option( 'acf_osm_proxy', [] ) );
+		if ( ! $proxy_enabled ) {
+			return;
+		}
+
+		$software = isset( $_SERVER['SERVER_SOFTWARE'] )
+			? strtolower( sanitize_text_field( wp_unslash( $_SERVER['SERVER_SOFTWARE'] ) ) )
+			: '';
+
+		// Apache / LiteSpeed honour the generated .htaccess; anything else (Nginx, …) does not.
+		if ( '' === $software || str_contains( $software, 'apache' ) || str_contains( $software, 'litespeed' ) ) {
+			return;
+		}
+
+		$snippet = "location ^~ /wp-content/maps/ {\n\ttry_files \$uri /wp-content/maps/index.php;\n}";
+		?>
+		<div class="notice notice-warning">
+			<p><strong><?php esc_html_e( 'ACF OpenStreetMap Field — Map Proxy', 'acf-openstreetmap-field' ); ?></strong></p>
+			<p><?php esc_html_e( 'The map proxy relies on an .htaccess rewrite, which your web server (Nginx or similar) does not use. Add the following to your server configuration so proxied tiles are served:', 'acf-openstreetmap-field' ); ?></p>
+			<pre><code><?php echo esc_html( $snippet ); ?></code></pre>
+		</div>
+		<?php
 	}
 
 	/**
