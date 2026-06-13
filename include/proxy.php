@@ -42,13 +42,17 @@ if ( preg_match( '/\/sites\/(\d+)\//i', $request_uri, $matches ) ) {
 	@list( $garbage, $blog_id ) = $matches; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 	$config_path .= '/sites/' . $blog_id;
 }
-// $proxy_config is a global config. Merge with local config from up-content/maps/uploads/acf-osm-proxy-config.php
-if ( file_exists( $config_path . '/acf-osm-proxy-config.php' ) ) {
-	if ( $local_proxy_config = include( $config_path . '/acf-osm-proxy-config.php' ) ) {
-		if ( is_array( $local_proxy_config ) ) {
-			$proxy_config = array_replace( $proxy_config, $local_proxy_config );
-		}
-	}
+// $proxy_config is a global config. Merge with the local config in wp-content/maps/uploads/.
+$local_proxy_config = null;
+if ( file_exists( $config_path . '/acf-osm-proxy-config.json' ) ) {
+	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+	$local_proxy_config = json_decode( file_get_contents( $config_path . '/acf-osm-proxy-config.json' ), true );
+} elseif ( file_exists( $config_path . '/acf-osm-proxy-config.php' ) ) {
+	// legacy executable config (pre-1.7.0)
+	$local_proxy_config = include( $config_path . '/acf-osm-proxy-config.php' );
+}
+if ( is_array( $local_proxy_config ) ) {
+	$proxy_config = array_replace( $proxy_config, $local_proxy_config );
 }
 
 @list( $garbage, $provider, $z, $x, $y, $r ) = $map_matches;
