@@ -57,7 +57,7 @@ Pick a tile provider, set the view, drop one or many markers — then output a r
 </details>
 
 ## Requirements
-- WordPress 4.8+
+- WordPress 5.5+
 - PHP 8.0 – 8.5
 - [Advanced Custom Fields](https://www.advancedcustomfields.com/) 5.7+
 
