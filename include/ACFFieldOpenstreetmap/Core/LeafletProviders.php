@@ -9,26 +9,13 @@ class LeafletProviders extends Singleton {
 	/** @var array */
 	private $leaflet_providers = null;
 
-	/** @var array Memoized results of get_providers(), keyed by filter signature. */
+	/** @var array Memoized results of get_providers(), keyed by filter set + settings state. */
 	private $providers_cache = [];
 
 	/**
 	 *	@inheritdoc
 	 */
 	protected function __construct() {
-		// Invalidate the memoized provider list whenever the relevant settings change.
-		foreach ( [ 'acf_osm_provider_tokens', 'acf_osm_providers', 'acf_osm_proxy' ] as $option ) {
-			add_action( "add_option_{$option}", [ $this, 'flush_cache' ] );
-			add_action( "update_option_{$option}", [ $this, 'flush_cache' ] );
-			add_action( "delete_option_{$option}", [ $this, 'flush_cache' ] );
-		}
-	}
-
-	/**
-	 *	Reset the memoized provider list.
-	 */
-	public function flush_cache() {
-		$this->providers_cache = [];
 	}
 
 	/**
@@ -51,7 +38,14 @@ class LeafletProviders extends Singleton {
 	 */
 	public function get_providers( $filters = [], $unfiltered = false ) {
 
-		$cache_key = ( $unfiltered ? '1' : '0' ) . '|' . implode( ',', (array) $filters );
+		// Key the memo on the filter set AND the settings that influence the result,
+		// so it self-invalidates when any of those options change — no hooks needed,
+		// and robust across the option state PHPUnit rolls back between tests.
+		$cache_key = ( $unfiltered ? '1' : '0' ) . '|' . implode( ',', (array) $filters ) . '|' . md5( wp_json_encode( [
+			get_option( 'acf_osm_provider_tokens', [] ),
+			get_option( 'acf_osm_providers', [] ),
+			get_option( 'acf_osm_proxy', [] ),
+		] ) );
 		if ( isset( $this->providers_cache[ $cache_key ] ) ) {
 			return $this->providers_cache[ $cache_key ];
 		}
