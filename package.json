@@ -22,6 +22,7 @@
     "test:phpunit": "wp-env run tests-cli --env-cwd=wp-content/plugins/acf-openstreetmap-field vendor/bin/phpunit --",
     "dev-test": "./src/run/dev-test.sh",
     "dashicons": "node ./src/run/dashicons.js",
+    "providers": "node ./src/run/providers.js",
     "i18n": "wp i18n make-pot . languages/acf-openstreetmap-field.pot --domain=acf-openstreetmap-field --exclude=tmp/*",
     "rollback": "git reset --hard HEAD~ && git push origin +master",
     "postinstall": "composer install",

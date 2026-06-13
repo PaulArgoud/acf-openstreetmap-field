@@ -150,6 +150,7 @@ Useful npm scripts:
 | `npm run dev-test` | Create test fields in wp-admin and watch sources |
 | `npm run uitest` | Create test fields in wp-admin |
 | `npm run audit` | Run the phpcs audit |
+| `npm run providers` | Report tile-provider drift vs upstream `leaflet-providers` |
 | `npm run i18n` | Generate the `.pot` file |
 | `npm run test` | Run unit tests against PHP 8.0 and 8.5 |
 
