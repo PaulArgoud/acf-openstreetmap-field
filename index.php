@@ -2,13 +2,13 @@
 
 /*
 Plugin Name: ACF OpenStreetMap Field
-Plugin URI: https://wordpress.org/plugins/acf-openstreetmap-field
-Description: A configurable OpenStreetMap Field for ACF.
+Plugin URI: https://github.com/PaulArgoud/acf-openstreetmap-field
+Description: Configurable OpenStreetMap / Leaflet map field for ACF — markers, many tile providers, address geocoding and a privacy-friendly map proxy.
 Author: Jörn Lund, Paul Argoud
 Version: 1.7.0
 Requires at least: 5.5
 Requires PHP: 8.0
-Author URI: https://github.com/mcguffin
+Author URI: https://github.com/PaulArgoud
 License: GPL3
 Text Domain: acf-openstreetmap-field
 Domain Path: /languages/
