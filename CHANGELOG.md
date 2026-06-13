@@ -2,6 +2,10 @@
 
 All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugins/acf-openstreetmap-field/) plugin are documented in this file.
 
+## Unreleased
+ - Fix: The map proxy now uses a request timeout (no more hanging on a slow tile server) and no longer forwards the visitor's `Referer` header to the upstream tile server (privacy).
+ - Dev: Added GitHub Actions CI (phpcs + PHPUnit on PHP 8.0 & 8.5 + an asset-build check), expanded the PHPUnit suite (field value layer + OpenStreetMap iframe/link URLs), and pinned Composer's `platform.php` to 8.0 so dev dependencies resolve for the minimum supported PHP version.
+
 ## 1.7.0
  - Feature: WPGraphQL support. The field is exposed as a structured `AcfOpenStreetMap` GraphQL type (center, zoom, layers and markers) when [WPGraphQL](https://www.wpgraphql.com/) and [WPGraphQL for ACF](https://acf.wpgraphql.com/) are active ([#137](https://github.com/mcguffin/acf-openstreetmap-field/issues/137), thanks to [@agenceKanvas](https://github.com/agenceKanvas)).
  - Feature: New "Fit markers in view" field setting. When enabled, the frontend map automatically zooms and centers to fit all of its markers ([#135](https://github.com/mcguffin/acf-openstreetmap-field/issues/135)).
