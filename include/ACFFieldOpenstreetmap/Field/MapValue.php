@@ -130,7 +130,7 @@ class MapValue {
 			} else  {
 				if ( count( $value['markers'] ) ) {
 					// update address from first marker
-					$value['address'] = $value['markers'][0]['label'];
+					$value['address'] = $value['markers'][0]['label'] ?? '';
 				} else {
 					$value['address'] = '';
 				}
@@ -141,11 +141,11 @@ class MapValue {
 		foreach ( $value['markers'] as &$marker ) {
 
 			// typecast values
-			$marker['lat'] = floatval( $marker['lat'] );
-			$marker['lng'] = floatval( $marker['lng'] );
+			$marker['lat'] = floatval( $marker['lat'] ?? 0 );
+			$marker['lng'] = floatval( $marker['lng'] ?? 0 );
 
-			$marker['label'] = wp_kses_post( $marker[ 'label' ] );
-			$marker['default_label'] = wp_kses_post( $marker[ 'default_label' ] );
+			$marker['label'] = wp_kses_post( $marker['label'] ?? '' );
+			$marker['default_label'] = wp_kses_post( $marker['default_label'] ?? '' );
 		}
 		unset( $marker );
 
@@ -155,7 +155,7 @@ class MapValue {
 
 			if ( count( $value['markers'] ) ) {
 				// update address from first marker
-				$value['address'] = $value['markers'][0]['label'];
+				$value['address'] = $value['markers'][0]['label'] ?? '';
 			} else {
 				$value['address'] = '';
 			}
