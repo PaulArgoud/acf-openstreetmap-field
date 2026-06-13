@@ -190,8 +190,14 @@ class Core extends Plugin {
 			],
 		];
 
+		// Shared Leaflet core chunk (see webpack splitChunks). Registered as a
+		// dependency of every entry below so WordPress prints it first.
+		wp_register_script( 'acf-osm-leaflet', $this->get_asset_url( 'assets/js/acf-osm-leaflet.js' ), [], $this->get_version(), [
+			'in_footer' => true,
+		] );
+
 		/* frontend */
-		wp_register_script( 'acf-osm-frontend', $this->get_asset_url( 'assets/js/acf-osm-frontend.js' ), [ ], $this->get_version(), [
+		wp_register_script( 'acf-osm-frontend', $this->get_asset_url( 'assets/js/acf-osm-frontend.js' ), [ 'acf-osm-leaflet' ], $this->get_version(), [
 			'strategy'  => 'defer',
 			'in_footer' => true,
 		] );
@@ -202,7 +208,7 @@ class Core extends Plugin {
 		/* backend */
 
 		// field js
-		wp_register_script( 'acf-input-osm', $this->get_asset_url('assets/js/acf-input-osm.js'), ['acf-input','wp-backbone' ], $this->get_version(), [
+		wp_register_script( 'acf-input-osm', $this->get_asset_url('assets/js/acf-input-osm.js'), [ 'acf-osm-leaflet', 'acf-input', 'wp-backbone' ], $this->get_version(), [
 			// 'strategy'  => 'defer',
 			'in_footer' => true,
 		] );
@@ -213,7 +219,7 @@ class Core extends Plugin {
 
 
 		// field group admin js
-		wp_register_script( 'acf-field-group-osm', $this->get_asset_url('assets/js/acf-field-group-osm.js'), [ 'acf-field-group' ], $this->get_version(), [
+		wp_register_script( 'acf-field-group-osm', $this->get_asset_url('assets/js/acf-field-group-osm.js'), [ 'acf-osm-leaflet', 'acf-field-group' ], $this->get_version(), [
 			// 'strategy'  => 'defer',
 			'in_footer' => true,
 		] );
@@ -225,7 +231,7 @@ class Core extends Plugin {
 
 
 		// settings js
-		wp_register_script( 'acf-osm-settings', $this->get_asset_url( 'assets/js/acf-osm-settings.js' ), ['wp-backbone'], $this->get_version() );
+		wp_register_script( 'acf-osm-settings', $this->get_asset_url( 'assets/js/acf-osm-settings.js' ), [ 'acf-osm-leaflet', 'wp-backbone' ], $this->get_version() );
 		wp_localize_script( 'acf-osm-settings', 'acf_osm', $osm_l10n );
 		wp_localize_script( 'acf-osm-settings', 'acf_osm_settings', $osm_settings );
 		wp_localize_script( 'acf-osm-settings', 'acf_osm_admin', $osm_admin );
