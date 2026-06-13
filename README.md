@@ -6,12 +6,10 @@
 
 **Configurable OpenStreetMap / [Leaflet](https://leafletjs.com/) map field for [Advanced Custom Fields](https://www.advancedcustomfields.com/).**
 
-[![Plugin version](https://img.shields.io/wordpress/plugin/v/acf-openstreetmap-field?logo=wordpress&label=version)](https://wordpress.org/plugins/acf-openstreetmap-field/)
-[![Tested up to](https://img.shields.io/wordpress/plugin/tested/acf-openstreetmap-field?logo=wordpress&label=tested%20up%20to)](https://wordpress.org/plugins/acf-openstreetmap-field/)
+[![Version](https://img.shields.io/github/v/tag/PaulArgoud/acf-openstreetmap-field?sort=semver&label=version&color=blue)](https://github.com/PaulArgoud/acf-openstreetmap-field/tags)
+[![Tested up to](https://img.shields.io/badge/WordPress-up%20to%207.0-21759b?logo=wordpress&logoColor=white)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/php-8.0--8.5-777BB4?logo=php&logoColor=white)](composer.json)
 [![ACF](https://img.shields.io/badge/ACF-5.7%2B-00a0d2)](https://www.advancedcustomfields.com/)
-[![Active installs](https://img.shields.io/wordpress/plugin/installs/acf-openstreetmap-field?logo=wordpress&label=active%20installs)](https://wordpress.org/plugins/acf-openstreetmap-field/)
-[![Rating](https://img.shields.io/wordpress/plugin/stars/acf-openstreetmap-field?label=rating)](https://wordpress.org/plugins/acf-openstreetmap-field/#reviews)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE.txt)
 
 </div>
@@ -19,8 +17,6 @@
 ---
 
 Pick a tile provider, set the view, drop one or many markers — then output a ready-to-use interactive map, an OpenStreetMap.org iframe, or the raw coordinates, anywhere in your theme. No Google Maps API key, no billing account, no tracking by default.
-
-This is the official GitHub repository of the [plugin published on WordPress.org](https://wordpress.org/plugins/acf-openstreetmap-field/).
 
 ## Table of contents
 - [Features](#features)
@@ -33,9 +29,7 @@ This is the official GitHub repository of the [plugin published on WordPress.org
 - [Integrations](#integrations)
 - [Development](#development)
 - [Testing](#testing)
-- [Contributing](#contributing)
 - [Changelog](#changelog)
-- [Credits](#credits)
 - [License](#license)
 
 ## Features
@@ -174,18 +168,8 @@ npm run test:legacy     # PHP 8.0 only
 
 Help is welcome with unit tests covering all PHP code and with unit-testing the JS.
 
-## Contributing
-Bug reports and pull requests are welcome on the [issue tracker](../../issues).
-
 ## Changelog
 See [CHANGELOG.md](CHANGELOG.md) for the full release history.
-
-## Credits
-This plugin wouldn't have been possible without these awesome people and projects:
-
-- Jan Pieter Waagmeester — [Leaflet Providers](https://github.com/leaflet-extras/leaflet-providers)
-- Per Liedman — [Leaflet Control Geocoder](https://github.com/perliedman/leaflet-control-geocoder)
-- The entire [Leaflet](https://leafletjs.com/) project
 
 ## License
 [GPLv3 or later](LICENSE.txt) &copy; the plugin contributors.

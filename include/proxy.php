@@ -89,7 +89,8 @@ foreach ( [
 	'Accept',
 	'Accept-Language',
 	'Accept-Encoding',
-	'Referer',
+	// 'Referer' is intentionally NOT forwarded: leaking the visitor's page URL to
+	// the upstream tile server would defeat the privacy purpose of this proxy.
 	'Sec-GPC',
 	'Sec-Fetch-Dest',
 	'Sec-Fetch-Mode',
@@ -113,6 +114,8 @@ $request_status = 0;
 $ctx = stream_context_create(['http' => [
 		'method'        => 'GET',
 		'header'        => implode("\r\n", $request_headers ),
+		'timeout'       => 10, // don't let a slow tile server hang the request
+		'max_redirects' => 3,
 	]],
 	[
 	'notification'  => function( $notification_code, $severity, $message, $message_code, $bytes_transferred, $bytes_max ) use ( &$http_status, &$request_status ) {

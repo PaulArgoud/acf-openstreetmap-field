@@ -30,6 +30,12 @@ require_once $_tests_dir . '/includes/functions.php';
 tests_add_filter(
 	'muplugins_loaded',
 	function() {
+		// Load Secure Custom Fields / ACF first (when present) so the ACF field
+		// type can be exercised in the tests.
+		$scf = WP_CONTENT_DIR . '/plugins/secure-custom-fields/secure-custom-fields.php';
+		if ( file_exists( $scf ) ) {
+			require_once $scf;
+		}
 		require_once dirname( __DIR__ ) . '/index.php';
 	}
 );

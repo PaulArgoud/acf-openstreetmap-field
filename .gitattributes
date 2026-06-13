@@ -1,6 +1,7 @@
 # git + dev
 .gitignore export-ignore
 .gitattributes export-ignore
+.github export-ignore
 .editorconfig export-ignore
 .sassrc export-ignore
 composer.* export-ignore
