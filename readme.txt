@@ -115,6 +115,9 @@ No.
 
 == Upgrade Notice ==
 
+= 1.7.1 =
+If you use the map proxy, its configuration is migrated automatically from a generated PHP file to JSON on upgrade — no action required.
+
 = 1.7.0 =
 This release requires PHP 8.0+ and WordPress 5.5+ (support for older versions has been dropped). The WP-CLI proxy commands moved from `wp map-proxy ...` to `wp acf-osm map-proxy ...`.
 
