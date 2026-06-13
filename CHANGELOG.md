@@ -6,6 +6,7 @@ All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugi
  - Performance: Leaflet core is now a single shared script cached across the admin and the frontend, instead of being inlined into all four bundles. Each context loads a small entry chunk plus the cached `acf-osm-leaflet` script.
  - Dev: De-duplicated the map-proxy tileset config builder (`MapProxy::build_tileset_config`).
  - Dev: Refactored the OpenStreetMap field class — the value sanitization moved to a decoupled, unit-tested `Field\MapValue` class and the field-editor settings UI to a `Field\Traits\FieldSettings` trait (the field class went from ~860 to ~510 lines).
+ - Dev: CI maintenance — `composer install` now retries to ride out transient Packagist outages, and the `actions/checkout` / `actions/setup-node` steps were bumped to v5 (Node 24 runtime).
 
 ## 1.7.1
  - Feature: Nginx support hint — when the map proxy is enabled on a server that doesn't use `.htaccess` (Nginx, …), the settings page shows the `location` block to add so proxied tiles are served.
