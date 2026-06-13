@@ -19,7 +19,9 @@ trait ProviderSettings {
 		add_settings_section(
 			$settings_section,
 			__( 'Map Layer Settings', 'acf-openstreetmap-field' ),
-			[ $this, 'tokens_description' ],
+			// the section description is rendered manually in settings_page(); the
+			// previous callback pointed to a method that no longer exists.
+			'__return_null',
 			$this->optionset
 		);
 
@@ -74,7 +76,7 @@ trait ProviderSettings {
 						checked( $is_parent_disabled, true, false )
 					);
 					/* translators: %s map tile provider name */
-					echo esc_html( sprintf( __('Disable %s', 'acf-openstreeetmap-field' ), $provider_key ) );
+					echo esc_html( sprintf( __('Disable %s', 'acf-openstreetmap-field' ), $provider_key ) );
 					?>
 					</label>
 					<?php if ( ! apply_filters( 'acf_osm_force_proxy', false ) ) { ?>
@@ -88,7 +90,7 @@ trait ProviderSettings {
 							checked( isset( $proxy_option[$provider_key] ) && $proxy_option[$provider_key], true, false )
 						);
 						/* translators: %s map tile provider name */
-						echo esc_html( sprintf( __('Enable Proxy for %s (beta)', 'acf-openstreeetmap-field' ), $provider_key ) );
+						echo esc_html( sprintf( __('Enable Proxy for %s (beta)', 'acf-openstreetmap-field' ), $provider_key ) );
 						?>
 						</label>
 					<?php } ?>
@@ -162,7 +164,7 @@ trait ProviderSettings {
 		// access key - find in $provider_data['options']['<something>']
 		foreach ( $provider_data['options'] as $option => $value ) {
 
-			if ( is_string($value) && ( 1 === preg_match( '/^<([^>]*)>$/imsU', $value, $matches ) ) ) {
+			if ( Core\LeafletProviders::is_token_placeholder( $value ) ) {
 				$current_value = '';
 				$has_value = isset( $token_option[ $provider_key ][ 'options' ][ $option ]) && ! empty( $token_option[ $provider_key ][ 'options' ][ $option ] );
 				?>
@@ -205,7 +207,7 @@ trait ProviderSettings {
 		@list( $field_name, $value ) = array_values( $args );
 		$field_id = sanitize_title( $field_name );
 
-		if ( 1 === preg_match( '/^<([^>]*)>$/imsU', $value, $matches ) ) {
+		if ( Core\LeafletProviders::is_token_placeholder( $value ) ) {
 			$value = '';
 		}
 
@@ -376,7 +378,7 @@ trait ProviderSettings {
 	 *	@return boolean
 	 */
 	private function is_overlay( $options ) {
-		return is_array($options) && isset( $options['isOverlay'] ) && $options['isOverlay'];;
+		return is_array($options) && isset( $options['isOverlay'] ) && $options['isOverlay'];
 	}
 
 	/**
