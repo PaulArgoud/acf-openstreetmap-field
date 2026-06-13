@@ -31,7 +31,14 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install --no-interaction --no-progress --prefer-dist
+        run: |
+          tries=0
+          until composer install --no-interaction --no-progress --prefer-dist; do
+            tries=$((tries+1))
+            [ $tries -ge 3 ] && exit 1
+            echo "composer install failed; retrying in 15s ($tries/3)…"
+            sleep 15
+          done
 
       - name: phpcs (errors only; warnings are informational)
         run: vendor/bin/phpcs -q -n --report=checkstyle --standard=phpcs.ruleset.xml . | cs2pr
@@ -91,7 +98,15 @@ jobs:
       - name: Install subversion (for the WP test library)
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends subversion
 
-      - run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Install Composer dependencies
+        run: |
+          tries=0
+          until composer install --no-interaction --no-progress --prefer-dist; do
+            tries=$((tries+1))
+            [ $tries -ge 3 ] && exit 1
+            echo "composer install failed; retrying in 15s ($tries/3)…"
+            sleep 15
+          done
 
       - name: Install the WordPress test suite (WP 7.0)
         run: bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1 7.0 true
