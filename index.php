@@ -5,7 +5,7 @@ Plugin Name: ACF OpenStreetMap Field
 Plugin URI: https://github.com/PaulArgoud/acf-openstreetmap-field
 Description: Configurable OpenStreetMap / Leaflet map field for ACF — markers, many tile providers, address geocoding and a privacy-friendly map proxy.
 Author: Jörn Lund, Paul Argoud
-Version: 1.7.1
+Version: 1.7.2
 Requires at least: 5.5
 Requires PHP: 8.0
 Author URI: https://github.com/PaulArgoud
