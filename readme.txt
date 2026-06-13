@@ -9,7 +9,7 @@ Stable tag: 1.7.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
-A configurable OpenStreetMap Field for ACF.
+Configurable OpenStreetMap / Leaflet map field for ACF — markers, many tile providers, address geocoding and a privacy-friendly map proxy.
 
 == Description ==
 
