@@ -3,6 +3,7 @@
 All notable changes to the [ACF OpenStreetMap Field](https://wordpress.org/plugins/acf-openstreetmap-field/) plugin are documented in this file.
 
 ## Unreleased
+ - Dev: De-duplicated the map-proxy tileset config builder (`MapProxy::build_tileset_config`).
  - Dev: Refactored the OpenStreetMap field class — the value sanitization moved to a decoupled, unit-tested `Field\MapValue` class and the field-editor settings UI to a `Field\Traits\FieldSettings` trait (the field class went from ~860 to ~510 lines).
 
 ## 1.7.1
